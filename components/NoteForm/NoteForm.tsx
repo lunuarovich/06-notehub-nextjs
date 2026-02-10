@@ -15,13 +15,13 @@ interface NoteFormProps {
 
 type CreateNotePayload = {
   title: string;
-  content?: string; // ✅ optional for create
+  content?: string;
   tag: Note["tag"];
 };
 
 interface NoteFormValues {
   title: string;
-  content: string; // Formik тримає string, навіть якщо поле “optional”
+  content: string;
   tag: "" | Note["tag"];
 }
 
@@ -39,7 +39,6 @@ const validationSchema = Yup.object({
     .max(50, "Max 50 chars")
     .required("Required"),
 
-  // ✅ OPTIONAL + max 500 (головний фікс)
   content: Yup.string().max(500, "Max 500 chars").notRequired(),
 
   tag: Yup.mixed()
@@ -68,7 +67,7 @@ export default function NoteForm({ onClose }: NoteFormProps) {
           tag: values.tag as Note["tag"],
           ...(values.content.trim()
             ? { content: values.content.trim() }
-            : {}), // ✅ не відправляємо порожній content
+            : {}),
         };
 
         mutation.mutate(payload);

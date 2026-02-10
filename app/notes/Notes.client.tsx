@@ -1,40 +1,69 @@
 "use client";
 
-import { useQuery } from "@tanstack/react-query";
-import { fetchNotes } from "@/lib/api";
 import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { useDebounce } from "use-debounce";
 
-import NoteList from "@/components/NoteList/NoteList";
+import { fetchNotes } from "@/lib/api";
+import { NotesResponse } from "@/types/notes-response";
+
 import SearchBox from "@/components/SearchBox/SearchBox";
+import NoteList from "@/components/NoteList/NoteList";
 import Pagination from "@/components/Pagination/Pagination";
+import Modal from "@/components/Modal/Modal";
+import NoteForm from "@/components/NoteForm/NoteForm";
 
-import css from "./NotesPage.module.css";
+import styles from "./NotesPage.module.css";
 
 export default function NotesClient() {
-  const [page, setPage] = useState(1);
-  const [query, setQuery] = useState("");
+  const [page, setPage] = useState<number>(1);
+  const [search, setSearch] = useState<string>("");
+  const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
 
-  const { data, isLoading, error } = useQuery({
-    queryKey: ["notes", page, query],
-    queryFn: () => fetchNotes(page, query),
+  const [debouncedSearch] = useDebounce(search, 500);
+
+  const handleSearch = (value: string) => {
+  setSearch(value);
+  setPage(1);
+};
+
+  const { data, isLoading, isError } = useQuery<NotesResponse>({
+    queryKey: ["notes", page, debouncedSearch],
+    queryFn: () => fetchNotes(page, debouncedSearch),
     placeholderData: (previousData) => previousData,
   });
 
   if (isLoading) return <p>Loading, please wait...</p>;
-  if (error || !data) return <p>Something went wrong.</p>;
+  if (isError || !data) return <p>Something went wrong.</p>;
 
   return (
-    <div className={css.app}>
-      <div className={css.toolbar}>
-        <SearchBox onSearch={setQuery} />
+    <main className={styles.app}>
+      <div className={styles.toolbar}>
+        <SearchBox onSearch={handleSearch} />
+        <button
+          type="button"
+          className={styles.button}
+          onClick={() => setIsModalOpen(true)}
+        >
+          Create note
+        </button>
       </div>
 
       <NoteList notes={data.notes} />
 
-      <Pagination
-        pageCount={data.totalPages}
-        onPageChange={(selectedPage) => setPage(selectedPage)}
-      />
-    </div>
+      {data.totalPages > 1 && (
+        <Pagination
+          pageCount={data.totalPages}
+          currentPage={page}
+          onPageChange={setPage}
+        />
+      )}
+
+      {isModalOpen && (
+        <Modal onClose={() => setIsModalOpen(false)}>
+          <NoteForm onClose={() => setIsModalOpen(false)} />
+        </Modal>
+      )}
+    </main>
   );
 }

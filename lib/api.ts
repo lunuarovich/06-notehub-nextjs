@@ -1,5 +1,6 @@
 import axios from "axios";
-import { Note, NotesResponse } from "@/types/note";
+import { Note } from "@/types/note";
+import { NotesResponse } from "@/types/notes-response";
 
 const api = axios.create({
   baseURL: "https://next-v1-notes-api.goit.study",
@@ -10,10 +11,10 @@ const api = axios.create({
 
 export const fetchNotes = async (
   page: number,
-  query: string
+  search: string,
 ): Promise<NotesResponse> => {
-  const { data } = await api.get("/notes", {
-    params: { page, q: query },
+  const { data } = await api.get<NotesResponse>("/notes", {
+    params: { page, search },
   });
   return data;
 };
@@ -23,11 +24,14 @@ export const fetchNoteById = async (id: string): Promise<Note> => {
   return data;
 };
 
-export const createNote = async (note: Omit<Note, "id" | "createdAt">) => {
-  const { data } = await api.post("/notes", note);
-  return data;
+export const createNote = async (
+  note: Omit<Note, "id" | "createdAt" | "updatedAt">,
+): Promise<Note> => {
+  const res = await api.post<Note>("/notes", note);
+  return res.data;
 };
 
-export const deleteNote = async (id: string) => {
-  await api.delete(`/notes/${id}`);
+export const deleteNote = async (id: string): Promise<Note> => {
+  const res = await api.delete<Note>(`/notes/${id}`);
+  return res.data;
 };

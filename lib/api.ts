@@ -3,7 +3,7 @@ import { Note } from "@/types/note";
 import { NotesResponse } from "@/types/notes-response";
 
 const api = axios.create({
-  baseURL: "https://next-v1-notes-api.goit.study",
+  baseURL: "https://notehub-public.goit.study/api",
   headers: {
     Authorization: `Bearer ${process.env.NEXT_PUBLIC_NOTEHUB_TOKEN}`,
   },
@@ -11,7 +11,7 @@ const api = axios.create({
 
 export const fetchNotes = async (
   page: number,
-  search: string,
+  search: string
 ): Promise<NotesResponse> => {
   const { data } = await api.get<NotesResponse>("/notes", {
     params: { page, search },
@@ -20,12 +20,12 @@ export const fetchNotes = async (
 };
 
 export const fetchNoteById = async (id: string): Promise<Note> => {
-  const { data } = await api.get(`/notes/${id}`);
+  const { data } = await api.get<Note>(`/notes/${id}`);
   return data;
 };
 
 export const createNote = async (
-  note: Omit<Note, "id" | "createdAt" | "updatedAt">,
+  note: Omit<Note, "id" | "createdAt" | "updatedAt">
 ): Promise<Note> => {
   const res = await api.post<Note>("/notes", note);
   return res.data;
